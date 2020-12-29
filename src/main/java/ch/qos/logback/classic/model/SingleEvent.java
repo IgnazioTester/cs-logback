@@ -2,8 +2,6 @@ package ch.qos.logback.classic.model;
 
 import ch.qos.logback.classic.enums.StateEnum;
 
-import java.util.Objects;
-
 public class SingleEvent implements LogEntry {
     private String id;
     private StateEnum state;

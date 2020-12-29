@@ -6,14 +6,15 @@ import ch.qos.logback.classic.model.SingleEvent;
 import ch.qos.logback.classic.queue.impl.DefaultMessageQueue;
 import ch.qos.logback.classic.service.EventMergerService;
 import ch.qos.logback.classic.util.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.logging.Logger;
 
 public class DefaultEventMergerService implements EventMergerService {
-    private static final Logger LOG = Logger.getLogger(DefaultEventMergerService.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultEventMergerService.class);
 
     private final Map<String, FullEvent> eventsMap = new HashMap<>();
 
@@ -38,6 +39,8 @@ public class DefaultEventMergerService implements EventMergerService {
                 parseEvent(event);
         }
 
+        LOG.info("All single events have been merged.");
+
         fullEventsQueue.add(null);
     }
 
@@ -55,8 +58,11 @@ public class DefaultEventMergerService implements EventMergerService {
 
         if (StateEnum.STARTED.equals(event.getState())) {
             fullEvent.setStartTimestamp(event.getTimestamp());
-        } else {
+        } else if (StateEnum.FINISHED.equals(event.getState())) {
             fullEvent.setEndTimestamp(event.getTimestamp());
+        } else {
+            LOG.error("Event {} state was not recognised: {}", event.getId(), event.getState());
+            return;
         }
 
         fullEvent.setHost(event.getHost());
@@ -70,6 +76,8 @@ public class DefaultEventMergerService implements EventMergerService {
             eventsMap.remove(fullEvent.getId());
 
             fullEventsQueue.add(fullEvent);
+
+            LOG.debug("Parsed event: {}", fullEvent);
         }
     }
 }

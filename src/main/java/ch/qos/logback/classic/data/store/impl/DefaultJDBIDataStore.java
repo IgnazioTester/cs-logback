@@ -2,10 +2,14 @@ package ch.qos.logback.classic.data.store.impl;
 
 import ch.qos.logback.classic.data.store.RelationalDataStore;
 import org.jdbi.v3.core.Jdbi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
 public class DefaultJDBIDataStore implements RelationalDataStore<Jdbi> {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultJDBIDataStore.class);
+
     private static final String CHECK_LOGBACK_TABLE_QUERY
             = "SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name LIKE 'LOGBACK'";
     private static final String CREATE_LOGBACK_TABLE_QUERY
@@ -33,6 +37,8 @@ public class DefaultJDBIDataStore implements RelationalDataStore<Jdbi> {
                 handle.execute(CREATE_LOGBACK_TABLE_QUERY);
             }
         });
+
+        LOG.info("Database table created.");
     }
 
     @Override
@@ -45,5 +51,7 @@ public class DefaultJDBIDataStore implements RelationalDataStore<Jdbi> {
     public void clearTables() {
         initDataStore();
         dataStore.useHandle(handle -> handle.execute(DELETE_ALL_FROM_LOGBACK));
+
+        LOG.info("Database table cleared.");
     }
 }

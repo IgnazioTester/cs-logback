@@ -9,12 +9,13 @@ import ch.qos.logback.classic.util.ThreadUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
-import java.util.logging.Logger;
 
 public class DefaultEventLineParserService implements EventLineParserService {
-    private static final Logger LOG = Logger.getLogger(DefaultEventLineParserService.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultEventLineParserService.class);
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -38,6 +39,8 @@ public class DefaultEventLineParserService implements EventLineParserService {
                 parseLine(event.getEvent());
         }
 
+        LOG.info("All lines has been parsed into events.");
+
         eventsQueue.add(null);
     }
 
@@ -54,24 +57,27 @@ public class DefaultEventLineParserService implements EventLineParserService {
         try {
             node = mapper.readTree(line);
         } catch (JsonProcessingException e) {
-            LOG.warning("Line wasn't proper JSON format, skipping.");
+            LOG.warn("Line wasn't proper JSON format, skipping.");
             return;
         }
 
-        if ((element = node.get("id")) == null)
-            LOG.warning("Found log entry without an Id, skipping.");
-        else
+        if ((element = node.get("id")) == null) {
+            LOG.warn("Found log entry without an Id, skipping.");
+            return;
+        } else
             id = element.asText();
 
-        if ((element = node.get("state")) == null)
-            LOG.warning("Found log entry without a state, skipping.");
-        else
+        if ((element = node.get("state")) == null) {
+            LOG.warn("Found log entry without a state, skipping. Id was {}", id);
+            return;
+        } else
             state = element.asText();
 
         if ((element = node.get("timestamp")) == null ||
-                element.asLong(-1) == -1)
-            LOG.warning("Found log entry without a timestamp, skipping.");
-        else
+                element.asLong(-1) == -1) {
+            LOG.warn("Found log entry without a timestamp, skipping. Id was {}", id);
+            return;
+        } else
             timestamp = element.asLong();
 
         if ((element = node.get("host")) != null)
@@ -80,10 +86,20 @@ public class DefaultEventLineParserService implements EventLineParserService {
         if ((element = node.get("type")) != null)
             type = element.asText();
 
-        SingleEvent event = new SingleEvent(id, StateEnum.valueOf(state), timestamp);
+        StateEnum stateEnumValue;
+        try {
+            stateEnumValue = StateEnum.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("Found log entry with an unknown state {}.", state);
+            return;
+        }
+
+        SingleEvent event = new SingleEvent(id, stateEnumValue, timestamp);
         event.setHost(host);
         event.setType(type);
 
         eventsQueue.add(event);
+
+        LOG.debug("Parsed event {} for state {}", event.getId(), event.getState());
     }
 }

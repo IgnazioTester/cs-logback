@@ -1,9 +1,10 @@
 package ch.qos.logback.classic.util;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ThreadUtils {
-    private static final Logger LOG = Logger.getLogger(ThreadUtils.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(ThreadUtils.class);
 
     private ThreadUtils() {
     }
@@ -12,7 +13,7 @@ public class ThreadUtils {
         try {
             Thread.sleep(50);
         } catch (InterruptedException e) {
-            LOG.warning("An error occurred while thread was sleeping.");
+            LOG.warn("An error occurred while thread was sleeping.");
             Thread.currentThread().interrupt();
         }
     }

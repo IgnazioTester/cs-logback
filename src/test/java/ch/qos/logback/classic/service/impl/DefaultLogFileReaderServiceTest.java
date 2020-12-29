@@ -34,4 +34,12 @@ class DefaultLogFileReaderServiceTest {
 
         assertNull(queue.poll());
     }
+
+    @Test
+    void parseLines_invalidFile_ShouldPass() {
+        service.parseFile("fake.txt");
+
+        assertEquals(1, queue.size());
+        assertNull(queue.poll());
+    }
 }

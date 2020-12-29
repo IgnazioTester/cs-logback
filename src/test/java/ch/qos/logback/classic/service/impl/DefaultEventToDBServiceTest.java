@@ -9,6 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,5 +64,25 @@ class DefaultEventToDBServiceTest {
         service.writeEventsToDB();
 
         verify(DATA_STORE, times(3)).useHandle(any());
+    }
+
+    @Test
+    void parseLines_threadWait_ShouldPass() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        executorService.execute(() -> {
+            try {
+                service.writeEventsToDB();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        Thread.sleep(10);
+
+        eventsQueue.add(null);
+
+        latch.await();
     }
 }

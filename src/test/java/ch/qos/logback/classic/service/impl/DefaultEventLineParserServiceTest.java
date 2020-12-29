@@ -11,6 +11,9 @@ import org.junit.platform.commons.util.StringUtils;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,6 +54,44 @@ class DefaultEventLineParserServiceTest {
                 assertTrue(expected.contains(actual.getType()));
         }
 
+        assertNull(eventsQueue.poll());
+    }
+
+    @Test
+    void parseLines_invalidContent_ShouldPass() {
+        linesQueue.add(new StringEvent("{\"id\":\"scsmbstgra\", \"state\":\"RUNNING\", \"type\":\"APPLICATION_LOG\", \"host\":\"12345\", \"timestamp\":1491377495212}"));
+        linesQueue.add(new StringEvent("{\"state\":\"STARTED\", \"type\":\"APPLICATION_LOG\", \"host\":\"12345\", \"timestamp\":1491377495212}"));
+        linesQueue.add(new StringEvent("{\"id\":\"scsmbstgra\", \"type\":\"APPLICATION_LOG\", \"host\":\"12345\", \"timestamp\":1491377495212}"));
+        linesQueue.add(new StringEvent("{\"id\":\"scsmbstgra\", \"state\":\"STARTED\"}"));
+        linesQueue.add(new StringEvent("Just a string"));
+        linesQueue.add(null);
+
+        service.parseLines();
+
+        assertEquals(1, eventsQueue.size());
+        assertNull(eventsQueue.poll());
+    }
+
+    @Test
+    void parseLines_threadWait_ShouldPass() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        executorService.execute(() -> {
+            try {
+                service.parseLines();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        Thread.sleep(10);
+
+        linesQueue.add(null);
+
+        latch.await();
+
+        assertEquals(1, eventsQueue.size());
         assertNull(eventsQueue.poll());
     }
 }

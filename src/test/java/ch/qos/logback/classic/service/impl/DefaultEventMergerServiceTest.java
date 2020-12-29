@@ -3,12 +3,16 @@ package ch.qos.logback.classic.service.impl;
 import ch.qos.logback.classic.enums.StateEnum;
 import ch.qos.logback.classic.model.FullEvent;
 import ch.qos.logback.classic.model.SingleEvent;
+import ch.qos.logback.classic.model.StringEvent;
 import ch.qos.logback.classic.queue.impl.DefaultMessageQueue;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,6 +70,29 @@ class DefaultEventMergerServiceTest {
 
         assertEquals(expected, fullEventsQueue.poll());
 
+        assertNull(fullEventsQueue.poll());
+    }
+
+    @Test
+    void parseLines_threadWait_ShouldPass() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        executorService.execute(() -> {
+            try {
+                service.mergeEvents();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        Thread.sleep(10);
+
+        eventsQueue.add(null);
+
+        latch.await();
+
+        assertEquals(1, fullEventsQueue.size());
         assertNull(fullEventsQueue.poll());
     }
 }

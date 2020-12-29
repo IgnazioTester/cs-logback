@@ -11,37 +11,38 @@ import ch.qos.logback.classic.service.impl.DefaultEventMergerService;
 import ch.qos.logback.classic.service.impl.DefaultEventToDBService;
 import ch.qos.logback.classic.service.impl.DefaultLogFileReaderService;
 import org.jdbi.v3.core.Jdbi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.security.Permission;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Main {
     private static final int NUMBER_OF_THREADS = 4;
-    private static final Logger LOG = Logger.getLogger(Main.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    private static final RelationalDataStore<Jdbi> DATA_STORE = new DefaultJDBIDataStore();
-    private static final LogFileReaderService LOG_FILE_READER_SERVICE = new DefaultLogFileReaderService();
-    private static final EventLineParserService EVENT_LINE_PARSER_SERVICE = new DefaultEventLineParserService();
-    private static final EventMergerService EVENT_MERGER_SERVICE = new DefaultEventMergerService();
-    private static final EventToDBService EVENT_TO_DB_SERVICE = new DefaultEventToDBService();
+    static RelationalDataStore<Jdbi> DATA_STORE = new DefaultJDBIDataStore();
+    static LogFileReaderService LOG_FILE_READER_SERVICE = new DefaultLogFileReaderService();
+    static EventLineParserService EVENT_LINE_PARSER_SERVICE = new DefaultEventLineParserService();
+    static EventMergerService EVENT_MERGER_SERVICE = new DefaultEventMergerService();
+    static EventToDBService EVENT_TO_DB_SERVICE = new DefaultEventToDBService();
 
     public static void main(String[] args) throws InterruptedException {
         if (args == null || args.length != 1) {
-            LOG.severe("Invalid input parameters");
+            LOG.error("Invalid input parameters");
             throw new IllegalArgumentException("Invalid input parameters");
         }
 
         String fileName = args[0];
 
-        LOG.log(Level.INFO, "Target log file: {0}", fileName);
+        LOG.info("Target log file: {}", fileName);
 
         File logFile = new File(fileName);
         if (!logFile.exists() || logFile.isDirectory()) {
-            LOG.severe("The file provided does not exist.");
+            LOG.error("The file provided does not exist.");
             throw new IllegalArgumentException("The file provided does not exist.");
         }
 
