@@ -91,6 +91,10 @@ class DefaultEventToDBServiceTest {
 
         latch.await();
 
+        service.maxNumWaits = 20;
+
         assertThrows(InterruptedException.class, () -> service.writeEventsToDB());
+
+        service.maxNumWaits = 1200;
     }
 }

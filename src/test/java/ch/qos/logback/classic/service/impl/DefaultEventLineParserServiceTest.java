@@ -104,6 +104,10 @@ class DefaultEventLineParserServiceTest {
         assertEquals(1, eventsQueue.size());
         assertNull(eventsQueue.poll());
 
+        service.maxNumWaits = 20;
+
         assertThrows(InterruptedException.class, () -> service.parseLines());
+
+        service.maxNumWaits = 1200;
     }
 }

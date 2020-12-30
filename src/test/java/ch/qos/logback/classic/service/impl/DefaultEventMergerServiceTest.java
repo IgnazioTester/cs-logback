@@ -100,6 +100,10 @@ class DefaultEventMergerServiceTest {
         assertEquals(1, fullEventsQueue.size());
         assertNull(fullEventsQueue.poll());
 
+        service.maxNumWaits = 20;
+
         assertThrows(InterruptedException.class, () -> service.mergeEvents());
+
+        service.maxNumWaits = 1200;
     }
 }

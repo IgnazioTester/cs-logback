@@ -21,13 +21,15 @@ public class DefaultEventMergerService implements EventMergerService {
     private Queue<SingleEvent> eventsQueue = DefaultMessageQueue.getInstance().getQueueForClass(SingleEvent.class);
     private Queue<FullEvent> fullEventsQueue = DefaultMessageQueue.getInstance().getQueueForClass(FullEvent.class);
 
+    int maxNumWaits = 1200;
+
     @Override
     public void mergeEvents() throws InterruptedException {
         boolean finished = false;
         int waitCount = 0;
 
         while (!finished) {
-            if (waitCount >= 200) { // 200 waits of 50 millis equals 10.000 millis, 10 seconds
+            if (waitCount >= maxNumWaits) { // 200 waits of 50 millis equals 10.000 millis, 10 seconds
                 throw new InterruptedException("EventMergerService did not receive an event for 1 minute. Shuting down.");
             } else if (eventsQueue.isEmpty()) {
                 ThreadUtils.safeSleep(50L);
