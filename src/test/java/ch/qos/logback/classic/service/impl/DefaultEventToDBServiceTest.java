@@ -61,7 +61,11 @@ class DefaultEventToDBServiceTest {
 
         eventsQueue.add(null);
 
-        service.writeEventsToDB();
+        try {
+            service.writeEventsToDB();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         verify(DATA_STORE, times(3)).useHandle(any());
     }
@@ -74,6 +78,8 @@ class DefaultEventToDBServiceTest {
         executorService.execute(() -> {
             try {
                 service.writeEventsToDB();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             } finally {
                 latch.countDown();
             }
@@ -84,5 +90,7 @@ class DefaultEventToDBServiceTest {
         eventsQueue.add(null);
 
         latch.await();
+
+        assertThrows(InterruptedException.class, () -> service.writeEventsToDB());
     }
 }

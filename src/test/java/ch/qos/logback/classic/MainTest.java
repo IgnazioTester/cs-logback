@@ -50,7 +50,7 @@ class MainTest {
     }
 
     @Test
-    void main_valid_shouldPass() {
+    void main_valid_shouldPass() throws InterruptedException {
         doNothing().when(DATA_STORE).clearTables();
         doNothing().when(LOG_FILE_READER_SERVICE).parseFile(any());
         doNothing().when(EVENT_LINE_PARSER_SERVICE).parseLines();

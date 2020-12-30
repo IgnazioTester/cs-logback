@@ -9,9 +9,9 @@ public class ThreadUtils {
     private ThreadUtils() {
     }
 
-    public static void safeSleep() {
+    public static void safeSleep(long millis) {
         try {
-            Thread.sleep(50);
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             LOG.warn("An error occurred while thread was sleeping.");
             Thread.currentThread().interrupt();

@@ -1,5 +1,5 @@
 package ch.qos.logback.classic.service;
 
 public interface EventMergerService {
-    void mergeEvents();
+    void mergeEvents() throws InterruptedException;
 }

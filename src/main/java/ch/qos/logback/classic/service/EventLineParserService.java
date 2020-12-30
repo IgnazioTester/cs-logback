@@ -1,5 +1,5 @@
 package ch.qos.logback.classic.service;
 
 public interface EventLineParserService {
-    void parseLines();
+    void parseLines() throws InterruptedException;
 }

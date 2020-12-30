@@ -3,7 +3,6 @@ package ch.qos.logback.classic.service.impl;
 import ch.qos.logback.classic.enums.StateEnum;
 import ch.qos.logback.classic.model.FullEvent;
 import ch.qos.logback.classic.model.SingleEvent;
-import ch.qos.logback.classic.model.StringEvent;
 import ch.qos.logback.classic.queue.impl.DefaultMessageQueue;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +39,11 @@ class DefaultEventMergerServiceTest {
 
         eventsQueue.addAll(events);
 
-        service.mergeEvents();
+        try {
+            service.mergeEvents();
+        } catch (InterruptedException e) {
+            fail();
+        }
 
         assertEquals(4, fullEventsQueue.size());
 
@@ -81,6 +84,8 @@ class DefaultEventMergerServiceTest {
         executorService.execute(() -> {
             try {
                 service.mergeEvents();
+            } catch (InterruptedException e) {
+                fail();
             } finally {
                 latch.countDown();
             }
@@ -94,5 +99,7 @@ class DefaultEventMergerServiceTest {
 
         assertEquals(1, fullEventsQueue.size());
         assertNull(fullEventsQueue.poll());
+
+        assertThrows(InterruptedException.class, () -> service.mergeEvents());
     }
 }

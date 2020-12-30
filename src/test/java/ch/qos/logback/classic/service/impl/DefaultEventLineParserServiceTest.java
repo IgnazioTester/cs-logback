@@ -37,7 +37,11 @@ class DefaultEventLineParserServiceTest {
 
         linesQueue.addAll(events);
 
-        service.parseLines();
+        try {
+            service.parseLines();
+        } catch (InterruptedException e) {
+            fail();
+        }
 
         assertEquals(events.size(), eventsQueue.size());
 
@@ -66,7 +70,11 @@ class DefaultEventLineParserServiceTest {
         linesQueue.add(new StringEvent("Just a string"));
         linesQueue.add(null);
 
-        service.parseLines();
+        try {
+            service.parseLines();
+        } catch (InterruptedException e) {
+            fail();
+        }
 
         assertEquals(1, eventsQueue.size());
         assertNull(eventsQueue.poll());
@@ -80,6 +88,8 @@ class DefaultEventLineParserServiceTest {
         executorService.execute(() -> {
             try {
                 service.parseLines();
+            } catch (InterruptedException e) {
+                fail();
             } finally {
                 latch.countDown();
             }
@@ -93,5 +103,7 @@ class DefaultEventLineParserServiceTest {
 
         assertEquals(1, eventsQueue.size());
         assertNull(eventsQueue.poll());
+
+        assertThrows(InterruptedException.class, () -> service.parseLines());
     }
 }

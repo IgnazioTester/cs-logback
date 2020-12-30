@@ -20,14 +20,20 @@ public class DefaultEventToDBService implements EventToDBService {
     private Queue<FullEvent> eventsQueue = DefaultMessageQueue.getInstance().getQueueForClass(FullEvent.class);
 
     @Override
-    public void writeEventsToDB() {
+    public void writeEventsToDB() throws InterruptedException {
         boolean finished = false;
+        int waitCount = 0;
 
         while (!finished) {
-            if (eventsQueue.isEmpty()) {
-                ThreadUtils.safeSleep();
+            if (waitCount >= 200) { // 200 waits of 50 millis equals 10.000 millis, 10 seconds
+                throw new InterruptedException("WriteToDBService did not receive an event for 1 minute. Shuting down.");
+            } else if (eventsQueue.isEmpty()) {
+                ThreadUtils.safeSleep(50L);
+                waitCount++;
                 continue;
             }
+
+            waitCount = 0;
 
             FullEvent event = eventsQueue.poll();
 

@@ -19,6 +19,7 @@ import java.security.Permission;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 public class Main {
     private static final int NUMBER_OF_THREADS = 4;
@@ -62,6 +63,9 @@ public class Main {
         service.execute(() -> {
             try {
                 EVENT_LINE_PARSER_SERVICE.parseLines();
+            } catch (InterruptedException e) {
+                LOG.error("Event line parser server hanged up and shutdown after a minute without input");
+                throw new RejectedExecutionException("Event line parser server hanged up and shutdown after a minute without input");
             } finally {
                 latch.countDown();
             }
@@ -70,6 +74,9 @@ public class Main {
         service.execute(() -> {
             try {
                 EVENT_MERGER_SERVICE.mergeEvents();
+            } catch (InterruptedException e) {
+                LOG.error("Event merger server hanged up and shutdown after a minute without input");
+                throw new RejectedExecutionException("Event merger server hanged up and shutdown after a minute without input");
             } finally {
                 latch.countDown();
             }
@@ -78,6 +85,9 @@ public class Main {
         service.execute(() -> {
             try {
                 EVENT_TO_DB_SERVICE.writeEventsToDB();
+            } catch (InterruptedException e) {
+                LOG.error("Event to DB server hanged up and shutdown after a minute without input");
+                throw new RejectedExecutionException("Event to DB server hanged up and shutdown after a minute without input");
             } finally {
                 latch.countDown();
             }
